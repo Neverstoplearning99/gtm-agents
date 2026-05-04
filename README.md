@@ -254,7 +254,8 @@ Install the plugins you need:
 **Advanced Users:**
 6. [Agent Reference](docs/agent-reference.md) - All 92 agents organized by function
 7. [Architecture](docs/architecture.md) - Design principles and technical details
-8. [Contributing Guide](CONTRIBUTING.md) - Build your own plugins and agents
+8. [Sandboxing](docs/sandboxing.md) - Filesystem and network isolation for safer agent execution
+9. [Contributing Guide](CONTRIBUTING.md) - Build your own plugins and agents
 
 ## 🆕 What's New
 

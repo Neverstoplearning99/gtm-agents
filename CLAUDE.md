@@ -445,6 +445,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 - [Plugin Reference](docs/plugin-reference.md) - All 67 plugins
 - [Agent Reference](docs/agent-reference.md) - All 203 agents
 - [Business Skills](docs/business-skills.md) - All 243 skills
+- [Sandboxing](docs/sandboxing.md) - Filesystem and network isolation for safer agent execution
 - [FAQ](docs/FAQ.md) - Common questions
 
 ---
