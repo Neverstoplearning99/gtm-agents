@@ -10,6 +10,28 @@
 
 ---
 
+## Privacy & Data Handling
+
+### Granola is Private — Never Use for Outbound Content
+
+**Granola data is private and personal.** Never read Granola transcripts, meetings, summaries, folders, or account data for:
+
+- Content generation (blog posts, case studies, social posts, LinkedIn, Twitter/X, threads)
+- Marketing material of any kind (email campaigns, sequences, newsletters, drips)
+- Sales enablement assets (battlecards, talk tracks, objection libraries)
+- Publishing or syndication to any platform (Notion pages, Gamma decks, Drive docs intended for sharing, websites, public repos)
+- Any output that is intended to leave the local machine or be seen by anyone other than the user
+- Training data, prompt examples, or fine-tuning corpora
+- Plugin/agent/skill examples, fixtures, or sample outputs in this repository
+
+**Granola is used exclusively for personal context:** job search prep, interview prep, VC pitch prep, and personal notes.
+
+**Default behavior:** Do not call Granola MCP tools (`get_meeting_transcript`, `get_meetings`, `list_meetings`, `list_meeting_folders`, `query_granola_meetings`, `get_account_info`) unless the user explicitly asks for help with one of the personal-use cases above in the current request. Even then, never persist, summarize-for-publication, or route Granola content into HubSpot, Apollo, Notion shared spaces, Gamma, Drive shared folders, GitHub, or any outbound channel.
+
+**Do not suggest Granola as a content source.** Do not propose workflows, automations, hooks, or pipelines that read from Granola for any non-personal purpose, even hypothetically.
+
+---
+
 ## Repository Structure
 
 ```
