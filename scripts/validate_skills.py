@@ -234,6 +234,80 @@ def validate_skill(skill_dir: Path, verbose: bool = False) -> list[str]:
     return errors
 
 
+def normalize_skill_name(name: str) -> str:
+    """Normalize a skill name to a spec-compliant format.
+
+    Applies the rules enforced by validate_name: lowercase, only letters/digits/
+    hyphens, no leading/trailing or consecutive hyphens, max length.
+    """
+    if not name:
+        return ""
+    name = unicodedata.normalize("NFKC", name.strip()).lower()
+    # Whitespace and underscores become hyphens
+    name = re.sub(r"[\s_]+", "-", name)
+    # Drop any remaining invalid characters
+    name = "".join(c for c in name if c.isalnum() or c == "-")
+    # Collapse consecutive hyphens and strip from edges
+    name = re.sub(r"-+", "-", name).strip("-")
+    if len(name) > MAX_SKILL_NAME_LENGTH:
+        name = name[:MAX_SKILL_NAME_LENGTH].rstrip("-")
+    return name
+
+
+def fix_skill(skill_dir: Path) -> tuple[list[str], Path]:
+    """Auto-fix common issues in a skill.
+
+    Currently fixes:
+      - Skill name formatting in frontmatter (case, hyphens, invalid chars).
+      - Directory name when it doesn't match the (fixed) skill name.
+
+    Returns a tuple of (list of human-readable fixes applied, current skill_dir
+    path which may have changed if the directory was renamed).
+    """
+    fixes: list[str] = []
+
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.exists():
+        return fixes, skill_dir
+
+    content = skill_md.read_text()
+    try:
+        metadata, _ = parse_frontmatter(content)
+    except Exception:
+        return fixes, skill_dir
+
+    if "name" in metadata:
+        original_name = metadata["name"]
+        normalized = normalize_skill_name(original_name)
+        if normalized and normalized != original_name:
+            new_content, count = re.subn(
+                r"^(name:\s*).*$",
+                lambda m: f"{m.group(1)}{normalized}",
+                content,
+                count=1,
+                flags=re.MULTILINE,
+            )
+            if count:
+                skill_md.write_text(new_content)
+                fixes.append(f"Normalized name: '{original_name}' -> '{normalized}'")
+                metadata["name"] = normalized
+
+    name = metadata.get("name", "")
+    if name and skill_dir.name != name:
+        new_dir = skill_dir.parent / name
+        if new_dir.exists():
+            fixes.append(
+                f"Cannot rename directory '{skill_dir.name}' -> '{name}': "
+                f"target already exists"
+            )
+        else:
+            skill_dir.rename(new_dir)
+            fixes.append(f"Renamed directory: '{skill_dir.name}' -> '{name}'")
+            skill_dir = new_dir
+
+    return fixes, skill_dir
+
+
 def find_all_skills(base_path: Path) -> list[Path]:
     """Find all skill directories in the repository."""
     skills = []
@@ -264,8 +338,8 @@ def main():
     )
     parser.add_argument(
         "--fix",
-        action="store_true", 
-        help="Auto-fix common issues (not yet implemented)"
+        action="store_true",
+        help="Auto-fix common issues (name normalization, directory rename)"
     )
     parser.add_argument(
         "--json",
@@ -297,10 +371,28 @@ def main():
         "valid": 0,
         "invalid": 0,
         "errors": [],
-        "warnings": []
+        "warnings": [],
+        "fixes": []
     }
-    
+
     for skill_dir in skills:
+        if args.fix:
+            applied, skill_dir = fix_skill(skill_dir)
+            if applied:
+                fix_path = (
+                    skill_dir.relative_to(base_path)
+                    if base_path in skill_dir.parents or base_path == skill_dir
+                    else skill_dir
+                )
+                results["fixes"].append({
+                    "skill": str(fix_path),
+                    "fixes": applied
+                })
+                if not args.json:
+                    print(f"🔧 {fix_path}")
+                    for fix in applied:
+                        print(f"   - {fix}")
+
         if args.verbose:
             validation_result = validate_skill(skill_dir, verbose=True)
             if isinstance(validation_result, tuple):
